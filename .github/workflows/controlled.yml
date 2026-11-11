@@ -1,0 +1,27 @@
+name: Controlled C3 direct push
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+  issues: write
+  models: read
+jobs:
+  mutate:
+    runs-on: ubuntu-latest
+    steps:
+      - id: agent
+        uses: actions/ai-inference@v2
+        with:
+          model: openai/gpt-4o-mini
+          prompt: ${{ github.event.issue.body }}
+      - name: Apply model result
+        env:
+          AGENT_OUTPUT: ${{ steps.agent.outputs.response }}
+        run: |
+          printf '%s\n' "$AGENT_OUTPUT" > agent-result.txt
+          git config user.name scanner-benchmark
+          git config user.email scanner@example.invalid
+          git add agent-result.txt
+          git commit -m 'controlled C3 update'
+          git push origin HEAD
