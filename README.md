@@ -1,5 +1,4 @@
-# C3-004
+# GT-0217 cross-workflow merge decision
 
-ai-output-push
-
-AI inference output controls a later shell git push.
+An external issue controls the Agent output stored as an artifact. A separate
+privileged consumer reads that artifact and conditionally merges a pull request.

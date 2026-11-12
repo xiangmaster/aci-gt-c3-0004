@@ -1,0 +1,28 @@
+name: GT-0217 merge consumer
+on:
+  workflow_run:
+    workflows: [GT-0217 agent producer]
+    types: [completed]
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+jobs:
+  merge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent-result
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Apply model merge decision
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DECISION=$(tr -d '\r\n' < agent-result.txt)
+          if [ "$DECISION" = "merge" ]; then
+            gh pr merge 1 --merge
+          fi
