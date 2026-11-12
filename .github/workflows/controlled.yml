@@ -1,26 +1,30 @@
-name: GT-0217 agent producer
+name: GT-0217 Claude direct mutation
 on:
   issues:
     types: [opened]
 permissions:
-  contents: read
+  contents: write
+  issues: write
   actions: read
   models: read
 jobs:
-  propose:
+  mutate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - id: agent
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-base-action@beta
         with:
-          allowed_non_write_users: '*'
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ github.event.issue.body }}
-      - name: Materialize merge decision
+          allowed_tools: 'Read,Write,Edit,Bash(git:*)'
+      - name: Apply model result
+        env:
+          AGENT_OUTPUT: ${{ steps.agent.outputs.result }}
         run: |
-          printf '%s\n' "${{ steps.agent.outputs.result }}" > agent-result.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agent-result
-          path: agent-result.txt
+          printf '%s\n' "$AGENT_OUTPUT" > generated.txt
+          git config user.name benchmark
+          git config user.email benchmark@example.invalid
+          git add generated.txt
+          git commit -m "agent generated update"
+          git push origin HEAD

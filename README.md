@@ -1,4 +1,4 @@
-# GT-0217 cross-workflow merge decision
+# GT-0217 same-workflow Claude mutation
 
-An external issue controls the Agent output stored as an artifact. A separate
-privileged consumer reads that artifact and conditionally merges a pull request.
+An external issue reaches Claude in a job with repository write permission. The
+Agent response is materialized and pushed from the same workflow.
